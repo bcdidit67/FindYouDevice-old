@@ -102,9 +102,16 @@ object ThemeManager {
     fun tileBrightDrawable(context: Context): Drawable =
         ColorDrawable(colors(context).tileBright)
 
-    /** 磁贴暗色（小磁贴 / 次级） */
+    /** 磁贴档 B（中磁贴） */
     fun tileDarkDrawable(context: Context): Drawable =
         ColorDrawable(colors(context).tileDark)
+
+    /** 磁贴档 C（小磁贴，更深，形成层次） */
+    fun tileDeepDrawable(context: Context): Drawable =
+        ColorDrawable(colors(context).tileDeep)
+
+    /** 强调色（Tab 选中 / 高亮） */
+    fun accentColor(context: Context): Int = colors(context).accent
 
     /**
      * 磁贴半透明（明显透出壁纸）。
