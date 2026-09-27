@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 自适应图标背景（沿用主仓库图标） -->
+    <color name="ic_launcher_background">#FF3F51B5</color>
+
+    <!-- Metro / WP10 色彩系统 -->
+    <color name="metro_bg">#FF000000</color>
+    <color name="metro_bg_soft">#FF1C1C1C</color>
+    <color name="metro_tile_blue">#FF0078D7</color>
+    <color name="metro_tile_blue_pressed">#FF005A9E</color>
+    <color name="metro_tile_orange">#FFFF8C00</color>
+    <color name="metro_tile_gray">#FF1C1C1C</color>
+    <color name="metro_text_primary">#FFFFFFFF</color>
+    <color name="metro_text_secondary">#FFAAAAAA</color>
+</resources>

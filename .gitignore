@@ -1,0 +1,20 @@
+# IDE
+*.iml
+.idea/
+
+# Gradle
+.gradle/
+build/
+/local.properties
+
+# Backups / tool dirs
+.backup/
+.operit/
+.kotlin/
+
+# APK / outputs
+*.apk
+*.aab
+
+# OS
+.DS_Store
