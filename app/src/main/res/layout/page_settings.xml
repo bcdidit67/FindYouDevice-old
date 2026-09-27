@@ -28,7 +28,7 @@
             android:id="@+id/rowBgSystem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -49,7 +49,7 @@
             android:id="@+id/rowBgSolid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -70,7 +70,7 @@
             android:id="@+id/rowBgImage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -91,7 +91,7 @@
             android:id="@+id/rowHue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -148,7 +148,7 @@
                 android:textSize="12sp" />
             </LinearLayout>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/swDynamic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -184,7 +184,7 @@
                 android:textSize="12sp" />
             </LinearLayout>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/swTransparent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -228,7 +228,7 @@
                 
             </LinearLayout>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/swAutoWifi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -257,7 +257,7 @@
                 
             </LinearLayout>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/swAutoCell"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -286,7 +286,7 @@
                 
             </LinearLayout>
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/swAutoMetered"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -325,7 +325,7 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_marginTop="8dp"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:gravity="start|center_vertical"
             android:text="保存密码"
             android:textColor="#FF4FA3E3"
@@ -347,7 +347,7 @@
             android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_marginTop="8dp"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:gravity="start|center_vertical"
             android:text="保存节点"
             android:textColor="#FF4FA3E3"
@@ -389,7 +389,7 @@
             android:id="@+id/rowProjectSet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -410,7 +410,7 @@
             android:id="@+id/rowQqSet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
@@ -431,7 +431,7 @@
             android:id="@+id/rowMailSet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
+            android:background="@drawable/metro_row"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
