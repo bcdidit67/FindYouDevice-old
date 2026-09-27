@@ -5,18 +5,18 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 
 /**
- * 网络场景自动控制：
- *  - 连接 WiFi（非计量）→ 自动开启服务（仅当用户此前希望开启，见 [Prefs.getUserWantWeb]）；
- *  - 连接移动流量 → 自动关闭服务；
- *  - 连接热点 / 计量网络 → 自动关闭服务。
+ * 网络场景自动控制（API 21 兼容）：
+ *  - 连接 WiFi（非计量）→ 自动开启服务（仅当用户此前希望开启）
+ *  - 连接移动流量 → 自动关闭服务
+ *  - 连接热点 / 计量网络 → 自动关闭服务
  *
- * 说明：三个动作分别受设置页开关控制；自动开/关不会改写"用户意愿"，因此
- * 「借流量自动关 → 回到 WiFi 自动恢复」形成闭环；进程存活期间持续监听
- * （注册于 MainApplication，配合服务的 START_STICKY 重建）。
+ * ⚠️ 兼容性：所有网络状态判断走 [NetworkCompat]，
+ * 避免在 Android 5.x 上调用 API23+ 的 getActiveNetwork()（会 NoSuchMethodError 崩溃）。
  */
 object NetworkAutoControl {
 
@@ -36,14 +36,18 @@ object NetworkAutoControl {
             override fun onLost(network: Network) = schedule(app)
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) = schedule(app)
         }
-        // API21 兼容：使用带 NetworkRequest 的注册（default 回调需 API24+）
-        val request = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-        runCatching { cm.registerNetworkCallback(request, cb) }.onSuccess {
+        // registerNetworkCallback(NetworkRequest, cb) 自 API 21 起可用
+        val ok = runCatching {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            cm.registerNetworkCallback(request, cb)
+            true
+        }.getOrDefault(false)
+        if (ok) {
             callback = cb
             registered = true
-            schedule(app) // 注册后做一次初始评估
+            schedule(app)
         }
     }
 
@@ -60,34 +64,33 @@ object NetworkAutoControl {
         handler.postDelayed({ evaluate(app) }, 400)
     }
 
-    /** 核心决策：按当前默认网络类型与设置开关，自动开/关服务 */
+    /** 核心决策：按当前默认网络类型与设置开关，自动开/关服务（永不抛异常） */
     fun evaluate(context: Context) {
-        val app = context.applicationContext
-        val cm = app.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
-        val now = System.currentTimeMillis()
-        if (now - lastDecisionMs < 500) return
-        lastDecisionMs = now
+        runCatching {
+            val app = context.applicationContext
+            val now = System.currentTimeMillis()
+            if (now - lastDecisionMs < 500) return
+            lastDecisionMs = now
 
-        val caps = cm.activeNetwork?.let { cm.getNetworkCapabilities(it) }
-        val isCellular = caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
-        val isWifi = caps?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-        val isEth = caps?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true
-        val metered = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) != true
-        val serviceRunning = Prefs.sp(app).getBoolean(HostService.KEY_WEB_RUNNING, false)
+            // ★ 走 NetworkCompat：API21 用 NetworkInfo，API23+ 用 NetworkCapabilities
+            val s = NetworkCompat.current(app)
+            val serviceRunning = Prefs.sp(app).getBoolean(HostService.KEY_WEB_RUNNING, false)
 
-        when {
-            // ① 自动开：WiFi（非计量）+ 用户希望开启 + 服务未运行
-            isWifi && !metered &&
-                Prefs.getAutoStartWifi(app) && Prefs.getUserWantWeb(app) && !serviceRunning -> {
-                runCatching { HostService.start(app) }
-            }
-            // ② 自动关：移动流量
-            isCellular && Prefs.getAutoStopCellular(app) && serviceRunning -> {
-                runCatching { HostService.stop(app) }
-            }
-            // ③ 自动关：热点 / 计量网络（WiFi 或以太但计量）
-            (isWifi || isEth) && metered && Prefs.getAutoStopMetered(app) && serviceRunning -> {
-                runCatching { HostService.stop(app) }
+            when {
+                // ① 自动开：WiFi（非计量）+ 用户希望开启 + 服务未运行
+                s.isWifi && !s.metered &&
+                    Prefs.getAutoStartWifi(app) && Prefs.getUserWantWeb(app) && !serviceRunning -> {
+                    HostService.start(app)
+                }
+                // ② 自动关：移动流量
+                s.isCellular && Prefs.getAutoStopCellular(app) && serviceRunning -> {
+                    HostService.stop(app)
+                }
+                // ③ 自动关：热点 / 计量网络
+                (s.isWifi || s.isEthernet) && s.metered &&
+                    Prefs.getAutoStopMetered(app) && serviceRunning -> {
+                    HostService.stop(app)
+                }
             }
         }
     }
