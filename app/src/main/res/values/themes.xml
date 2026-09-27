@@ -12,6 +12,13 @@
         <item name="android:textColorSecondary">@color/metro_text_secondary</item>
     </style>
 
+    <!-- Metro 行点击反馈（替代 ?attr/selectableItemBackground，避免主题属性解析失败） -->
+    <style name="Metro.Row" parent="">
+        <item name="android:background">@drawable/metro_row</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <!-- 磁贴基础样式：纯色、零阴影、零圆角、无状态动画 -->
     <style name="Metro.Tile" parent="">
         <item name="android:elevation">0dp</item>
