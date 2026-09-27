@@ -42,20 +42,28 @@ object WallpaperColorExtractor {
         val accent: Int,
     )
 
-    /** 从系统壁纸提取主题色 */
+    /**
+     * 从系统壁纸提取主题色。
+     * 兼容策略（API21 起逐级降级）：
+     *   1) API24+ 用 getDrawable()（无需权限）
+     *   2) API21-23 用已废弃的 drawable 属性
+     *   3) 仍失败则返回 null（调用方回退默认色）
+     */
     fun fromSystemWallpaper(context: Context): ThemeColors? {
-        return try {
-            val wm = android.app.WallpaperManager.getInstance(context)
-            val bmp = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                wm.getDrawable()?.let { drawableToBitmap(it) }
-            } else {
-                @Suppress("DEPRECATION")
-                wm.drawable?.let { drawableToBitmap(it) }
+        // 路径 1：getDrawable（API24+，最可靠）
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val d = android.app.WallpaperManager.getInstance(context).drawable
+                if (d != null) return extractFrom(drawableToBitmap(d) ?: return@runCatching)
             }
-            bmp?.let { extractFrom(it) }
-        } catch (e: Throwable) {
-            null
         }
+        // 路径 2：老 API 的 drawable 属性
+        runCatching {
+            @Suppress("DEPRECATION")
+            val d2 = android.app.WallpaperManager.getInstance(context).drawable
+            if (d2 != null) return extractFrom(drawableToBitmap(d2) ?: return@runCatching)
+        }
+        return null
     }
 
     /** 从自定义图片 Uri 提取主题色 */
@@ -136,10 +144,18 @@ object WallpaperColorExtractor {
     /** 纯色背景模式：由用户选择的主色生成 */
     fun fromSolidColor(hue: Float): ThemeColors = buildTheme(hue)
 
+    /** drawable -> 小尺寸 Bitmap（限制在 ~320px 内，避免大图 OOM） */
     private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): Bitmap? {
         return try {
-            val w = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else THUMB * 8
-            val h = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else THUMB * 8
+            val maxSide = THUMB * 8
+            var w = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else maxSide
+            var h = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else maxSide
+            // 等比缩到 maxSide 内
+            if (w > maxSide || h > maxSide) {
+                val r = w.toFloat() / h.toFloat()
+                if (w > h) { w = maxSide; h = (maxSide / r).toInt().coerceAtLeast(1) }
+                else { h = maxSide; w = (maxSide * r).toInt().coerceAtLeast(1) }
+            }
             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
             val canvas = android.graphics.Canvas(bmp)
             drawable.setBounds(0, 0, canvas.width, canvas.height)
