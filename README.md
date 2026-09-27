@@ -1,7 +1,7 @@
 # FindYouDevice-old
 
-> 面向老设备的精简版：最低支持 **Android 5.0（API 21）**，Windows Phone 10（Metro）纯平面 UI。
-> 适用于 2GB 内存级别老机型（如华为畅享 5 / MT6735 实测验证）。
+> FindYouDevice-old 是 FindYouDevice 专为旧手机而生的版本：最低兼容安卓 5.0，包名不相同，去除了正常版本的两个 UI，使用 WP10 的设计更加简洁耐看。
+> 此版本可能不更新或可能更新较慢，但经过真机安卓 5.1 实测；1.0.0 版本号基于 FindYouDevice 的 1.1.1 进行开发。
 
 ## 与主仓库的关系
 
@@ -12,7 +12,7 @@
 
 | 本仓库版本 | 基于主仓库版本 | 说明 |
 | --- | --- | --- |
-| 1.00（开发中） | v1.1.1 | 首个 _old 版本：Metro UI + Android 5.0 兼容 |
+| 1.0.0（开发中） | v1.1.1 | 首个 _old 版本：Metro UI + Android 5.0 兼容 |
 
 ## 设计规范（Metro / WP10）
 
