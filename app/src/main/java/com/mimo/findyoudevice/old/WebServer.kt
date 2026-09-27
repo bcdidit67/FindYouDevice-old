@@ -99,7 +99,11 @@ class WebServer(
     private fun sessionOk(t: String?): Boolean {
         if (t.isNullOrBlank()) return false
         val now = System.currentTimeMillis()
-        sessions.entries.removeIf { it.value < now }
+        // API21 兼容：Collection.removeIf 需 API 24，改为手动遍历
+        val it2 = sessions.entries.iterator()
+        while (it2.hasNext()) {
+            if (it2.next().value < now) it2.remove()
+        }
         val exp = sessions[t] ?: return false
         sessions[t] = now + SESSION_TTL_MS
         return true
@@ -146,15 +150,28 @@ class WebServer(
             // 优先显式 IPv4（INET）协议族绑定：部分 ROM 通配绑定会落到 IPv6-only，
             // 导致 127.0.0.1 与局域网 IPv4 不可达；该重载未在公开 SDK 暴露，采用反射兼容。
             val sock: ServerSocket = try {
-                val m = java.nio.channels.ServerSocketChannel::class.java
-                    .getMethod("open", java.net.ProtocolFamily::class.java)
-                val ch = m.invoke(null, java.net.StandardProtocolFamily.INET)
-                    as java.nio.channels.ServerSocketChannel
-                ch.setOption(java.net.StandardSocketOptions.SO_REUSEADDR, true)
-                ch.bind(java.net.InetSocketAddress(java.net.InetAddress.getByName("0.0.0.0"), port), 64)
-                ch.socket()
+                // 反射调用 NIO open(ProtocolFamily)：避免静态引用 API24+ 类（Android 5.x 会 NoClassDefFoundError）
+                val pfClass = Class.forName("java.net.ProtocolFamily")
+                val sscClass = Class.forName("java.nio.channels.ServerSocketChannel")
+                val stdPfClass = Class.forName("java.net.StandardProtocolFamily")
+                val inetField = stdPfClass.getField("INET")
+                val m = sscClass.getMethod("open", pfClass)
+                val ch = m.invoke(null, inetField.get(null))
+                // setOption(SO_REUSEADDR, true)
+                runCatching {
+                    val optClass = Class.forName("java.net.StandardSocketOptions")
+                    val soField = optClass.getField("SO_REUSEADDR")
+                    val setOption = sscClass.getMethod("setOption",
+                        Class.forName("java.net.SocketOption"), Object::class.java)
+                    setOption.invoke(ch, soField.get(null), true)
+                }
+                val bindMethod = sscClass.getMethod("bind",
+                    Class.forName("java.net.SocketAddress"), Int::class.javaPrimitiveType)
+                bindMethod.invoke(ch, InetSocketAddress(InetAddress.getByName("0.0.0.0"), port), 64)
+                val socketMethod = sscClass.getMethod("socket")
+                socketMethod.invoke(ch) as ServerSocket
             } catch (t: Throwable) {
-                // 回退：传统绑定（部分平台会得到双栈/仅 IPv6）
+                // 回退：传统绑定（API 21+ 均可用）
                 ServerSocket().apply {
                     reuseAddress = true
                     bind(InetSocketAddress(InetAddress.getByName("0.0.0.0"), port))
