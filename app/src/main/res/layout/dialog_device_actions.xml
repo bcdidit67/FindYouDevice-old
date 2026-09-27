@@ -71,6 +71,8 @@
                 android:textSize="14sp" />
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swLockFind"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
