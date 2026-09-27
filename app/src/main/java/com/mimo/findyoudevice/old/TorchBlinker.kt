@@ -33,6 +33,7 @@ object TorchBlinker {
     // ------------------------------------------------------------------
 
     /** 尝试用 Camera2 手电模式闪烁 [durationMs]；durationMs<=0=持续到 [stop]。true=已接管闪烁（调用方不要再走 Root 路径）。 */
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.M)
     fun tryStart(context: Context, durationMs: Long): Boolean {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) !=
             PackageManager.PERMISSION_GRANTED
@@ -64,11 +65,13 @@ object TorchBlinker {
         val id = cameraId
         cameraManager = null
         cameraId = null
-        if (cm != null && id != null) {
+        if (cm != null && id != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            @Suppress("NewApi")
             runCatching { cm.setTorchMode(id, false) }
         }
     }
 
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.M)
     private fun blinkLoop(cm: CameraManager, id: String, durationMs: Long) {
         val endAt = if (durationMs > 0) System.currentTimeMillis() + durationMs else Long.MAX_VALUE
         var on = true
