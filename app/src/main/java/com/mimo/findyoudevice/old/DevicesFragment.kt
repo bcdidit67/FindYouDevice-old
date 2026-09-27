@@ -36,12 +36,18 @@ class DevicesFragment : Fragment() {
     private lateinit var deviceAdapter: DeviceAdapter
     private val scanBusy = AtomicBoolean(false)
 
+    // WP8 磁贴墙：2x2 大块 + 2x1 长条 + 1x1 小方块，配三档明度
     private val tiles = mutableListOf(
-        Tile("web", "Web 服务", R.drawable.ic_desktop, 0, status = "已关闭", spanSize = 2),
-        Tile("scan", "扫描局域网", R.drawable.ic_search, 0),
-        Tile("add", "手动添加", R.drawable.ic_add, 0),
-        Tile("test", "测试报警", R.drawable.ic_bell, 0, status = ""),
-        Tile("local", "本机状态", R.drawable.ic_target, 0, status = "…", spanSize = 2),
+        Tile("web", "Web 服务", R.drawable.ic_desktop, status = "已关闭",
+             spanSize = 2, rowSpan = 2, accent = Tile.Accent.A),
+        Tile("scan", "扫描", R.drawable.ic_search,
+             spanSize = 2, rowSpan = 1, accent = Tile.Accent.B),
+        Tile("add", "添加", R.drawable.ic_add,
+             spanSize = 1, rowSpan = 1, accent = Tile.Accent.B),
+        Tile("test", "测试报警", R.drawable.ic_bell,
+             spanSize = 1, rowSpan = 1, accent = Tile.Accent.C),
+        Tile("local", "本机状态", R.drawable.ic_target, status = "…",
+             spanSize = 2, rowSpan = 1, accent = Tile.Accent.C),
     )
 
     private val handler = Handler(Looper.getMainLooper())
@@ -77,26 +83,27 @@ class DevicesFragment : Fragment() {
         handler.removeCallbacks(tick)
     }
 
-    /** 动态着色的核心：磁贴 Drawable 全部由代码生成 */
+    /** 动态着色：磁贴颜色全部由 ThemeManager 生成（含三档明度） */
     private fun applyDynamicColors() {
         val ctx = requireContext()
-        tiles.forEach { t ->
-            t.colorRes = 0 // 由 adapter 使用 Drawable
-        }
-        tileAdapter.dynamicColor = true
+        // 半透明档随设置实时同步
+        tileAdapter.useTranslucent = Prefs.getBgMode(ctx) != ThemeManager.BG_SOLID &&
+            Prefs.isTransparentTiles(ctx)
         tileAdapter.notifyDataSetChanged()
-        // 状态文字颜色随主题（浅灰）
-        b.tvStatus.setTextColor(0xFFAAAAAA.toInt())
+        // 状态文字用主题强调色（WP 风格）
+        runCatching {
+            b.tvStatus.setTextColor(ThemeManager.accentColor(ctx))
+        }
     }
 
     private fun setupTiles() {
         val lm = GridLayoutManager(requireContext(), 2)
         lm.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int = tiles[position].spanSize
+            override fun getSpanIndex(position: Int, spanCount: Int): Int = 0 // 保证大块从左侧开始
         }
         b.rvTiles.layoutManager = lm
         tileAdapter = TileAdapter(tiles) { onTile(it) }.apply {
-            dynamicColor = true
             useTranslucent = Prefs.getBgMode(requireContext()) != ThemeManager.BG_SOLID &&
                 Prefs.isTransparentTiles(requireContext())
         }
@@ -204,11 +211,12 @@ class DevicesFragment : Fragment() {
         val wantWeb = Prefs.sp(ctx).getBoolean(HostService.KEY_WEB_RUNNING, false)
         val webRunning = wantWeb && isPortOpen(HostService.DEFAULT_PORT)
         tiles.find { it.id == "web" }?.let { t ->
-            t.dynamic = if (webRunning) Tile.TileAccent.BRIGHT else Tile.TileAccent.DARK
+            // WP8：开启用亮档(A)，关闭用深档(C)
+            t.accent = if (webRunning) Tile.Accent.A else Tile.Accent.C
             t.status = if (webRunning) "已开启" else "已关闭"
         }
         tiles.find { it.id == "local" }?.let { t ->
-            t.dynamic = if (AlarmController.isRunning) Tile.TileAccent.BRIGHT else Tile.TileAccent.DARK
+            t.accent = if (AlarmController.isRunning) Tile.Accent.A else Tile.Accent.C
             t.status = when {
                 AlarmController.isLocked -> "锁定报警中 · 点击停止"
                 AlarmController.isRunning -> "报警中 · 点击停止"
