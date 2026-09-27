@@ -90,7 +90,7 @@ class DevicesFragment : Fragment() {
         tileAdapter.useTranslucent = Prefs.getBgMode(ctx) != ThemeManager.BG_SOLID &&
             Prefs.isTransparentTiles(ctx)
         tileAdapter.notifyDataSetChanged()
-        // 状态文字用主题强调色（WP 风格）
+        // 状态文字（IP）使用主题强调色（WP 风格）
         runCatching {
             b.tvStatus.setTextColor(ThemeManager.accentColor(ctx))
         }
