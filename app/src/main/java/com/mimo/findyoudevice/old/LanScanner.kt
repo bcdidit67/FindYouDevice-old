@@ -224,8 +224,7 @@ object LanScanner {
         withContext(Dispatchers.IO) {
             runCatching {
                 val user = "admin"
-                val cred = java.util.Base64.getEncoder()
-                    .encodeToString("$user:$password".toByteArray(Charsets.UTF_8))
+                val cred = android.util.Base64.encodeToString("$user:$password".toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
                 val url = URL("http://$ip:$PORT/find")
                 val conn = (url.openConnection() as? HttpURLConnection) ?: return@runCatching false
                 try {
@@ -251,8 +250,7 @@ object LanScanner {
         withContext(Dispatchers.IO) {
             runCatching {
                 val user = "admin"
-                val cred = java.util.Base64.getEncoder()
-                    .encodeToString("$user:$password".toByteArray(Charsets.UTF_8))
+                val cred = android.util.Base64.encodeToString("$user:$password".toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
                 val url = URL("http://$ip:$PORT/stop")
                 val conn = (url.openConnection() as? HttpURLConnection) ?: return@runCatching false
                 try {
