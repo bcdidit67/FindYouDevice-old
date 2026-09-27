@@ -35,9 +35,18 @@ object ThemeManager {
     @Volatile
     private var cached: ThemeColors? = null
 
-    /** 读取缓存；无缓存时按当前设置计算一次（幂等、可安全重复调用） */
+    /** 读取缓存；无缓存时按当前设置计算一次（幂等、可安全重复调用；永不抛异常） */
     fun colors(context: Context): ThemeColors {
         cached?.let { return it }
+        return runCatching { computeColors(context) }.getOrElse {
+            // 任何异常（权限/壁纸读取/解码失败）一律回退默认蓝，保证不崩溃
+            WallpaperColorExtractor.fromSolidColor(WallpaperColorExtractor.DEFAULT_HUE).also { t ->
+                cached = t
+            }
+        }
+    }
+
+    private fun computeColors(context: Context): ThemeColors {
         val ctx = context.applicationContext
         val dynamicOn = Prefs.getDynamicColor(ctx)
         val bgMode = Prefs.getBgMode(ctx)
@@ -62,20 +71,26 @@ object ThemeManager {
         return theme
     }
 
-    /** 强制重新计算（设置变更 / 壁纸变化 / 换图后调用） */
+    /** 强制重新计算（设置变更 / 壁纸变化 / 换图后调用；永不抛异常） */
     fun invalidate(context: Context): ThemeColors {
         cached = null
         return colors(context)
     }
 
-    /** 启动时：仅在无缓存 或 系统壁纸变化时重算（省电省 CPU） */
+    /** 安全读取颜色（供 UI 层调用，任何异常回退默认） */
+    fun safeColors(context: Context): ThemeColors = runCatching { colors(context) }
+        .getOrElse { WallpaperColorExtractor.fromSolidColor(WallpaperColorExtractor.DEFAULT_HUE) }
+
+    /** 启动时：仅在无缓存 或 系统壁纸变化时重算（省电省 CPU；永不抛异常） */
     fun ensureFresh(context: Context) {
-        val ctx = context.applicationContext
-        val curId = currentWallpaperId(ctx)
-        val lastId = Prefs.getLastWallpaperId(ctx)
-        if (cached == null || curId != lastId) {
-            Prefs.setLastWallpaperId(ctx, curId)
-            invalidate(ctx)
+        runCatching {
+            val ctx = context.applicationContext
+            val curId = currentWallpaperId(ctx)
+            val lastId = Prefs.getLastWallpaperId(ctx)
+            if (cached == null || curId != lastId) {
+                Prefs.setLastWallpaperId(ctx, curId)
+                invalidate(ctx)
+            }
         }
     }
 
