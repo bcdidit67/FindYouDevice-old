@@ -193,6 +193,65 @@ object Prefs {
     }
 
     // --------------------------------------------------------------------
+    // Metro 主题：动态取色 / 背景来源 / 手选色相 / 自定义图片 / 半透明磁贴
+    // --------------------------------------------------------------------
+    const val KEY_METRO_DYNAMIC = "metro_dynamic"
+    const val KEY_BG_MODE = "metro_bg_mode"          // 0=系统壁纸 1=纯色 2=自定义图片
+    const val KEY_MANUAL_HUE = "metro_manual_hue"    // 固定色相（0-360）
+    const val KEY_BG_IMAGE_URI = "metro_bg_image"    // 自定义背景图 Uri
+    const val KEY_TRANSPARENT_TILES = "metro_trans_tiles"
+    const val KEY_LAST_WALLPAPER_ID = "metro_last_wp_id"
+    const val KEY_CACHED_HUE = "metro_cached_hue"
+
+    /** 背景来源：0 系统壁纸 / 1 纯色 / 2 自定义图片 */
+    fun getBgMode(context: Context): Int = sp(context).getInt(KEY_BG_MODE, 0)
+
+    fun setBgMode(context: Context, mode: Int) {
+        sp(context).edit().putInt(KEY_BG_MODE, mode).apply()
+    }
+
+    /** 手动固定色相（默认 210 亮蓝） */
+    fun getManualHue(context: Context): Float = sp(context).getFloat(KEY_MANUAL_HUE, 210f)
+
+    fun setManualHue(context: Context, hue: Float) {
+        sp(context).edit().putFloat(KEY_MANUAL_HUE, hue).apply()
+    }
+
+    /** 自定义背景图 Uri */
+    fun getBgImageUri(context: Context): android.net.Uri? =
+        sp(context).getString(KEY_BG_IMAGE_URI, null)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { android.net.Uri.parse(it) }
+
+    fun setBgImageUri(context: Context, uri: android.net.Uri?) {
+        val e = sp(context).edit()
+        if (uri == null) e.remove(KEY_BG_IMAGE_URI) else e.putString(KEY_BG_IMAGE_URI, uri.toString())
+        e.apply()
+    }
+
+    /** 磁贴半透明（明显透出壁纸） */
+    fun isTransparentTiles(context: Context): Boolean =
+        sp(context).getBoolean(KEY_TRANSPARENT_TILES, true)
+
+    fun setTransparentTiles(context: Context, on: Boolean) {
+        sp(context).edit().putBoolean(KEY_TRANSPARENT_TILES, on).apply()
+    }
+
+    /** 上次系统壁纸 id（用于检测换壁纸） */
+    fun getLastWallpaperId(context: Context): Int = sp(context).getInt(KEY_LAST_WALLPAPER_ID, -1)
+
+    fun setLastWallpaperId(context: Context, id: Int) {
+        sp(context).edit().putInt(KEY_LAST_WALLPAPER_ID, id).apply()
+    }
+
+    /** 缓存的主色相（供设置页展示，无功能依赖） */
+    fun getCachedHue(context: Context): Float = sp(context).getFloat(KEY_CACHED_HUE, 210f)
+
+    fun setCachedHue(context: Context, hue: Float) {
+        sp(context).edit().putFloat(KEY_CACHED_HUE, hue).apply()
+    }
+
+    // --------------------------------------------------------------------
     // 动态取色（Monet）：MD3 默认开，MIUI X 默认关（切换风格时重置为该默认）
     // --------------------------------------------------------------------
     const val KEY_DYNAMIC_COLOR = "dynamicColor"
