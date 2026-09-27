@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     fun applyThemeToAll() {
         runCatching {
             binding.root.background = buildBackground()
+            renderTabs(binding.pager.currentItem)
             pagerAdapter.notifyDataSetChanged()
         }
     }
@@ -78,14 +79,22 @@ class MainActivity : AppCompatActivity() {
         else LayerDrawable(arrayOf(image, overlay))
     }
 
-    /** Tab 选中=白色 / 未选中=灰色，并更新下方提示小字 */
+    /** Tab 选中=白色 / 未选中=灰色；分割线与提示小字使用主题强调色 */
     private fun renderTabs(selected: Int) {
         tabIds.forEachIndexed { idx, id ->
             findViewById<TextView>(id).setTextColor(
-                if (idx == selected) 0xFFFFFFFF.toInt() else 0xFF888888.toInt()
+                if (idx == selected) 0xFFFFFFFF.toInt() else 0xFF777777.toInt()
             )
         }
         findViewById<TextView>(R.id.tabHint).text = hints.getOrElse(selected) { "" }
+        // 分割线 + 提示文字使用强调色（WP 风格）
+        runCatching {
+            val accent = ThemeManager.accentColor(this)
+            findViewById<android.view.View>(R.id.tabDivider).setBackgroundColor(accent)
+            findViewById<TextView>(R.id.tabHint).setTextColor(
+                (accent and 0x00FFFFFF) or 0xB3000000.toInt()
+            )
+        }
     }
 
     companion object {
