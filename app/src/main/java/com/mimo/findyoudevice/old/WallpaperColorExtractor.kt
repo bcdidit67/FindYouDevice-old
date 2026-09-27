@@ -30,9 +30,16 @@ object WallpaperColorExtractor {
     data class ThemeColors(
         val hue: Float,
         val background: Int,
+        /** 磁贴档位 A（WP8 主色，最亮，用于 2x2 大磁贴） */
         val tileBright: Int,
+        /** 磁贴档位 B（稍暗，用于 2x1 / 1x1） */
         val tileDark: Int,
+        /** 磁贴档位 C（更暗，用于次级磁贴，形成层次） */
+        val tileDeep: Int,
+        /** 半透明档（透出壁纸） */
         val tileTranslucent: Int,
+        /** 强调色（Tab 选中 / 高亮文字） */
+        val accent: Int,
     )
 
     /** 从系统壁纸提取主题色 */
@@ -112,14 +119,18 @@ object WallpaperColorExtractor {
         return buildTheme(hue)
     }
 
-    /** 按主色相生成 WP 三色（您指定的公式） */
+    /**
+     * 按主色相生成 WP8 磁贴墙配色（多档明度，形成"磁贴墙"层次）。
+     * 采用用户给定公式的扩展版：保持 S=0.9 高饱和，仅用 V 分档。
+     */
     fun buildTheme(hue: Float): ThemeColors {
-        val background = Color.HSVToColor(floatArrayOf(hue, 0.8f, 0.05f))
-        val bright = Color.HSVToColor(floatArrayOf(hue, 0.9f, 0.7f))
-        val dark = Color.HSVToColor(floatArrayOf(hue, 0.9f, 0.5f))
-        // 半透明磁贴（明显透出壁纸）：主色亮 + alpha 0xCC
-        val translucent = Color.HSVToColor(0xCC, floatArrayOf(hue, 0.9f, 0.7f))
-        return ThemeColors(hue, background, bright, dark, translucent)
+        val background = Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.06f))   // 极暗主色背景
+        val bright = Color.HSVToColor(floatArrayOf(hue, 0.95f, 0.78f))        // 档 A：大磁贴（最亮）
+        val dark = Color.HSVToColor(floatArrayOf(hue, 0.95f, 0.55f))          // 档 B：中磁贴
+        val deep = Color.HSVToColor(floatArrayOf(hue, 0.95f, 0.38f))          // 档 C：小磁贴（更深）
+        val translucent = Color.HSVToColor(0xE0, floatArrayOf(hue, 0.95f, 0.70f)) // 半透明
+        val accent = Color.HSVToColor(floatArrayOf(hue, 0.85f, 0.95f))        // 强调（Tab 选中）
+        return ThemeColors(hue, background, bright, dark, deep, translucent, accent)
     }
 
     /** 纯色背景模式：由用户选择的主色生成 */
