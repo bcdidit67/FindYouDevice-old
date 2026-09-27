@@ -149,6 +149,8 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swDynamic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -185,6 +187,8 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swTransparent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -229,6 +233,8 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swAutoWifi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -258,6 +264,8 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swAutoCell"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
@@ -287,6 +295,8 @@
             </LinearLayout>
 
             <androidx.appcompat.widget.SwitchCompat
+                android:track="@drawable/wp_switch_track"
+                android:thumb="@drawable/wp_switch_thumb"
                 android:id="@+id/swAutoMetered"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
