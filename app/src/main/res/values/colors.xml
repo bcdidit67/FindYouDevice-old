@@ -3,6 +3,11 @@
     <!-- 自适应图标背景（沿用主仓库图标） -->
     <color name="ic_launcher_background">#FF3F51B5</color>
 
+    <!-- 状态色（在线/离线，沿用主仓库语义） -->
+    <color name="status_online">#FF34A853</color>
+    <color name="status_offline">#FF9AA0A6</color>
+    <color name="white">#FFFFFFFF</color>
+
     <!-- Metro / WP10 色彩系统 -->
     <color name="metro_bg">#FF000000</color>
     <color name="metro_bg_soft">#FF1C1C1C</color>
