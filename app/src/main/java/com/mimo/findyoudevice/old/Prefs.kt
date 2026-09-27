@@ -217,6 +217,24 @@ object Prefs {
         sp(context).edit().putFloat(KEY_MANUAL_HUE, hue).apply()
     }
 
+    // ---- 强调色（与背景解耦：可独立于背景色选择） ----
+    const val KEY_ACCENT_HUE = "metro_accent_hue"
+    const val KEY_ACCENT_CUSTOM = "metro_accent_custom"
+
+    fun getAccentHue(context: Context): Float = sp(context).getFloat(KEY_ACCENT_HUE, 210f)
+
+    fun setAccentHue(context: Context, hue: Float) {
+        sp(context).edit().putFloat(KEY_ACCENT_HUE, hue).apply()
+    }
+
+    /** 强调色是否自定义（false = 跟随提取/背景主色） */
+    fun isAccentCustom(context: Context): Boolean =
+        sp(context).getBoolean(KEY_ACCENT_CUSTOM, false)
+
+    fun setAccentCustom(context: Context, custom: Boolean) {
+        sp(context).edit().putBoolean(KEY_ACCENT_CUSTOM, custom).apply()
+    }
+
     /** 自定义背景图 Uri */
     fun getBgImageUri(context: Context): android.net.Uri? =
         sp(context).getString(KEY_BG_IMAGE_URI, null)
