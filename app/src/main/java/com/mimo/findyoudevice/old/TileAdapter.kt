@@ -7,32 +7,32 @@ import com.mimo.findyoudevice.old.databinding.ItemTileBinding
 
 /**
  * Metro 磁贴数据。
- * [spanSize] 占列数（2 列网格；2 = 通栏）
- * [dynamic] 动态强调色档位（BRIGHT=亮 / DARK=暗）；由 DeviceFragment 按状态切换
+ * - [accent] 磁贴色档位：A=大磁贴（最亮）/ B=中 / C=小（更深），组合出 WP8 的"磁贴墙"层次
+ * - [spanSize] 占列数（2 列网格；2 = 通栏）
+ * - [rowSpan] 占行数（用于 2x2 大磁贴）
  */
 data class Tile(
     val id: String,
     var title: String,
     val iconRes: Int,
-    /** 保留：固定 drawable 资源（0 = 使用动态色） */
-    var colorRes: Int = 0,
     var status: String = "",
     val spanSize: Int = 1,
-    var dynamic: TileAccent = TileAccent.BRIGHT,
+    val rowSpan: Int = 1,
+    var accent: Accent = Accent.A,
 ) {
-    enum class TileAccent { BRIGHT, DARK }
+    enum class Accent { A, B, C }
 }
 
-/** Metro 磁贴适配器：颜色全部由 [ThemeManager] 动态生成 */
+/**
+ * Metro 磁贴适配器（WP8 风格）。
+ * 颜色 100% 来自 [ThemeManager] 动态生成的纯色 Drawable——不再有任何 XML 固定色。
+ */
 class TileAdapter(
     private val tiles: MutableList<Tile>,
     private val onClick: (Tile) -> Unit,
 ) : RecyclerView.Adapter<TileAdapter.VH>() {
 
-    /** 是否启用动态强调色（由页面设置；默认 true） */
-    var dynamicColor: Boolean = true
-
-    /** 是否半透明（明显透出壁纸） */
+    /** 是否使用半透明磁贴（透出壁纸） */
     var useTranslucent: Boolean = false
 
     inner class VH(val b: ItemTileBinding) : RecyclerView.ViewHolder(b.root)
@@ -49,20 +49,22 @@ class TileAdapter(
         b.tvTileTitle.text = t.title
         b.tvTileStatus.text = t.status
 
-        // === 动态着色核心：纯色 Drawable（含按下加深），不使用任何 XML 固定色 ===
-        val bg = if (dynamicColor) {
-            val base = when {
-                t.dynamic == Tile.TileAccent.BRIGHT ->
-                    if (useTranslucent) ThemeManager.tileTranslucentDrawable(ctx)
-                    else ThemeManager.tileBrightDrawable(ctx)
-                else -> ThemeManager.tileDarkDrawable(ctx)
-            }
-            base
-        } else {
-            androidx.core.content.ContextCompat.getDrawable(ctx, t.colorRes)
-                ?: ThemeManager.tileDarkDrawable(ctx)
+        // === WP8 磁贴着色：三档明度 + 可选半透明 ===
+        val bg = when {
+            useTranslucent -> ThemeManager.tileTranslucentDrawable(ctx)
+            t.accent == Tile.Accent.A -> ThemeManager.tileBrightDrawable(ctx)
+            t.accent == Tile.Accent.C -> ThemeManager.tileDeepDrawable(ctx)
+            else -> ThemeManager.tileDarkDrawable(ctx)
         }
         b.root.background = bg
+        // 大磁贴：图标更大
+        val big = t.spanSize >= 2 && t.rowSpan >= 2
+        val iconPx = if (big) 44 else 26
+        val lp = b.ivTileIcon.layoutParams
+        lp.width = (iconPx * ctx.resources.displayMetrics.density).toInt()
+        lp.height = lp.width
+        b.ivTileIcon.layoutParams = lp
+        b.tvTileTitle.textSize = if (big) 22f else 17f
 
         b.root.setOnClickListener { onClick(t) }
     }
