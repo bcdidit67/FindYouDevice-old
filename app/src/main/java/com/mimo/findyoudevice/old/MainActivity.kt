@@ -27,7 +27,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ThemeManager.ensureFresh(this) // 启动时一次性准备主题（含换壁纸检测）
+        // 主题准备（含换壁纸检测）：内部已全链路防护，异常不影响启动
+        ThemeManager.ensureFresh(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -46,16 +47,19 @@ class MainActivity : AppCompatActivity() {
         applyThemeToAll()
     }
 
-    /** 切换 Tab 后刷新（颜色跟随主题） */
+    /** 切换 Tab 后刷新（颜色跟随主题；全程防护，异常不崩溃） */
     fun applyThemeToAll() {
-        binding.root.background = buildBackground()
-        pagerAdapter.notifyDataSetChanged()
+        runCatching {
+            binding.root.background = buildBackground()
+            pagerAdapter.notifyDataSetChanged()
+        }
     }
 
     /** 构建背景：纯色 / 自定义图片 / 系统壁纸（后二者上叠主题深色遮罩，保证文字可读） */
     private fun buildBackground(): Drawable {
-        val mode = Prefs.getBgMode(this)
-        val overlay = ColorDrawable(ThemeManager.colors(this).background).apply {
+        val mode = runCatching { Prefs.getBgMode(this) }.getOrDefault(ThemeManager.BG_SYSTEM)
+        val baseColor = ThemeManager.safeColors(this).background
+        val overlay = ColorDrawable(baseColor).apply {
             alpha = if (mode == ThemeManager.BG_SOLID) 255 else 200
         }
         val image: Drawable? = when (mode) {
