@@ -110,8 +110,20 @@ object ThemeManager {
     fun tileDeepDrawable(context: Context): Drawable =
         ColorDrawable(colors(context).tileDeep)
 
-    /** 强调色（Tab 选中 / 高亮） */
-    fun accentColor(context: Context): Int = colors(context).accent
+    /** 强调色（Tab 选中 / 高亮 / 磁贴文字）——可独立于背景色设置 */
+    fun accentColor(context: Context): Int {
+        val ctx = context.applicationContext
+        return runCatching {
+            if (Prefs.isAccentCustom(ctx)) {
+                // 用户自定义强调色：高亮版本
+                android.graphics.Color.HSVToColor(
+                    floatArrayOf(Prefs.getAccentHue(ctx), 0.85f, 0.95f)
+                )
+            } else {
+                colors(ctx).accent
+            }
+        }.getOrElse { 0xFF4FA3E3.toInt() }
+    }
 
     /**
      * 磁贴半透明（明显透出壁纸）。
