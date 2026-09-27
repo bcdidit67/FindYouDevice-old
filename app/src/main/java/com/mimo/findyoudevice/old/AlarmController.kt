@@ -74,7 +74,11 @@ object AlarmController {
                 cmds.forEach { RootShell.execOrIgnore(it) }
 
                 // C. 闪光灯闪烁：Camera2 免 Root 优先，失败回退 Root sysfs；0=持续至 stop()
-                val torchTaken = TorchBlinker.tryStart(appCtx, dur)
+                // Camera2 路径需 API 23+（内部亦已守卫）；低版本直接走 Root sysfs 兜底
+                val torchTaken = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    @Suppress("NewApi")
+                    TorchBlinker.tryStart(appCtx, dur)
+                } else false
                 if (!torchTaken) TorchBlinker.blinkSysfs(appCtx, dur)
 
                 // D. 挂起：有限模式到时自动收尾；锁定模式等待 stop() 打断
